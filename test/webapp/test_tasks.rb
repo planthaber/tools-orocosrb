@@ -167,6 +167,27 @@ describe Orocos::WebApp::Tasks do
                     end
                 end
             end
+            
+            describe "/write" do
+                it "returns a code 500 if the data type is wrong" do
+                    with_stub_task_context "task" do |task|
+                        port = task.create_input_port 'port', '/double'
+                        post "/tasks/localhost/task/ports/port/write" {"test"}
+                        assert_equal 500, last_response.status
+                    end
+                end
+                it "writes a value to a port" do
+                    with_stub_task_context "task" do |task|
+                        port = task.create_intput_port 'port', '/double'
+#                        flexmock(Orocos.ruby_task).should_receive(:create_input_port).
+#                            and_return(flexmock(:raw_read_new => flexmock(:to_simple_value => 10.0),
+#                                :resolve_connection_from => true, :port= => nil, :policy= => nil))
+                        post "/tasks/localhost/task/ports/port/write" {"{\"command\":10.0"}
+                        assert_equal 201, last_response.status
+                        #assert_equal [Hash[sample: 10]], MultiJson.load(last_response.body, symbolize_keys: true)
+                    end
+                end
+            end
         end
     end
 end
