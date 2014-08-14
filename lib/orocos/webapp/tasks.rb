@@ -97,37 +97,44 @@ module Orocos
                 get ':name_service/:name/ports/:port_name/read' do
                     port = port_by_task_and_name(*params.values_at('name_service', 'name', 'port_name'))
 
-                    if Faye::WebSocket.websocket?(env)
-                        port = port.to_async.reader(init: true, pull: true)
-                        count = params.fetch(:count, Float::INFINITY)
-                        ws = Tasks.stream_async_data_to_websocket(env, port, count)
-
-                        status, response = ws.rack_response
-                        status status
-                        response
-                        
-                    else # Direct polling mode
-                        count = params.fetch(:count, 1)
-                        reader = port.reader(init: true, pull: true)
-                        result = Array.new
-                        (params[:timeout] / params[:poll_period]).ceil.times do
-                            while sample = reader.raw_read_new
-                                result << Hash[:sample => sample.to_simple_value]
-                                if result.size == count
-                                    return result
+                    if port.model.is_a? Orocos::Spec::OutputPort
+                        if Faye::WebSocket.websocket?(env)
+                            port = port.to_async.reader(init: true, pull: true)
+                            count = params.fetch(:count, Float::INFINITY)
+                            ws = Tasks.stream_async_data_to_websocket(env, port, count)
+    
+                            status, response = ws.rack_response
+                            status status
+                            response
+                            
+                        else # Direct polling mode
+                            count = params.fetch(:count, 1)
+                            reader = port.reader(init: true, pull: true)
+                            result = Array.new
+                            (params[:timeout] / params[:poll_period]).ceil.times do
+                                while sample = reader.raw_read_new
+                                    result << Hash[:sample => sample.to_simple_value]
+                                    if result.size == count
+                                        return result
+                                    end
                                 end
+                                sleep params[:poll_period]
                             end
-                            sleep params[:poll_period]
+                            error! "did not get any sample from #{params[:name]}.#{params[:port_name]} in #{params[:timeout]} seconds", 408
                         end
-                        error! "did not get any sample from #{params[:name]}.#{params[:port_name]} in #{params[:timeout]} seconds", 408
+                    else
+                        error! "Only output ports can be read"
                     end
                 end
                 post ':name_service/:name/ports/:port_name/write' do
-                
-                  port = port_by_task_and_name(*params.values_at('name_service', 'name', 'port_name'))
-                  obj = MultiJson.load(request.params["command"])                
-                  port.write(obj)
-                
+                    port = port_by_task_and_name(*params.values_at('name_service', 'name', 'port_name')) 
+                    if port.model.is_a? Orocos::Spec::InputPort
+                        puts "input port"
+                        obj = MultiJson.load(request.params["command"])                
+                        port.write(obj)
+                    else
+                        error! "Only input ports can be written"
+                    end
                 end
             end
         end
