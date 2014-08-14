@@ -129,11 +129,14 @@ module Orocos
                 post ':name_service/:name/ports/:port_name/write' do
                     port = port_by_task_and_name(*params.values_at('name_service', 'name', 'port_name')) 
                     if port.model.is_a? Orocos::Spec::InputPort
-                        puts "input port"
-                        obj = MultiJson.load(request.params["command"])                
-                        port.write(obj)
+                        begin
+                            obj = MultiJson.load(request.params["command"])
+                        rescue MultiJson::ParseError => exception
+                            error! "malformed JSON string", 415
+                        end  
+                            port.write(obj)     
                     else
-                        error! "Only input ports can be written"
+                        error! "Only input ports can be written" , 400
                     end
                 end
             end
