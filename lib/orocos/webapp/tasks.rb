@@ -6,11 +6,13 @@ module Orocos
         end
         class Tasks < Grape::API
           
-            use Rack::Cors do
-             allow do
-              origins '*'
-              resource '*', headers: :any, methods: :get
-             end
+            if $enable_cors
+                use Rack::Cors do
+                 allow do
+                  origins '*'
+                  resource '*', headers: :any, methods: [:get, :post]
+                 end
+                end
             end
           
             version 'v1', using: :header, vendor: :rock

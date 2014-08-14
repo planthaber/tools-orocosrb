@@ -5,11 +5,13 @@ require 'rack'
 require 'rack/cors'
 require 'thin'
 require 'orocos'
-require 'orocos/webapp'
+
 
 thin_host = '0.0.0.0'
 thin_port = 9292
 name_server_host = 'localhost'
+$enable_cors = false
+
 options = OptionParser.new do |opt|
     opt.on('--host', String, 'the host of the name server that should be contacted (default to localhost)') do |host|
         name_server_host = host
@@ -20,8 +22,15 @@ options = OptionParser.new do |opt|
     opt.on('--port', Integer, "the server's port (default to #{thin_port})") do |port|
         thin_port = port
     end
+    opt.on('--cors', "allow Cross-Origin Resource Sharing, JavaScript may access api even when loaded from other source than this server") do
+    	puts "CORS enabled"
+        $enable_cors = true
+    end
 end
 options.parse ARGV
+
+#has to be required after parsing the options in order to evaluate enable_cors correctly
+require 'orocos/webapp'
 
 Orocos::CORBA.name_service.ip = name_server_host
 Orocos.initialize
