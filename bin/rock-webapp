@@ -2,6 +2,7 @@
 
 require 'eventmachine'
 require 'rack'
+require 'rack/cors'
 require 'thin'
 require 'orocos'
 require 'orocos/webapp'

@@ -23,6 +23,7 @@
     <depend package="thin" optional="1"/>
     <depend package="rack" optional="1"/>
     <depend package="rack-test" optional="1"/>
+    <depend package="rack-cors" optional="1"/>
     <!--   libraries for the library implementation itself -->
     <depend package="grape" optional="1"/>
     <depend package="multi_json" optional="1"/>

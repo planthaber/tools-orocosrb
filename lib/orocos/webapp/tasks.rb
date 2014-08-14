@@ -5,6 +5,14 @@ module Orocos
             end
         end
         class Tasks < Grape::API
+          
+            use Rack::Cors do
+             allow do
+              origins '*'
+              resource '*', headers: :any, methods: :get
+             end
+            end
+          
             version 'v1', using: :header, vendor: :rock
             format :json
 
