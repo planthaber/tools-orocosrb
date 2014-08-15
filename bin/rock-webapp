@@ -22,13 +22,12 @@ options = OptionParser.new do |opt|
     opt.on('--port', Integer, "the server's port (default to #{thin_port})") do |port|
         thin_port = port
     end
-    opt.on('--cors', "allow Cross-Origin Resource Sharing, JavaScript may access api even when loaded from other source than this server") do
+    opt.on('--enable-cors', "allow Cross-Origin Resource Sharing, JavaScript may access api even when loaded from other source than this server") do
     	puts "CORS enabled"
         $enable_cors = true
     end
 end
 options.parse ARGV
-
 #has to be required after parsing the options in order to evaluate enable_cors correctly
 require 'orocos/webapp'
 
