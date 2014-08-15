@@ -47,7 +47,9 @@ describe Orocos::WebApp::Tasks do
                     with_stub_task_context "task" do |task|
                         get "/tasks?extended_info=true"
                         assert_equal 200, last_response.status
-                        expected = Hash[name: 'localhost/task', model: Hash[name: ''], state: 'STOPPED']
+                        model = task.model.to_h
+                        model[:states] = model[:states].map { |k, v| [k, v.to_s] }
+                        expected = Hash[name: 'localhost/task', model: model, state: 'STOPPED']
                         assert_equal Hash[tasks: [expected]],
                                           MultiJson.load(last_response.body, symbolize_keys: true)
                     end
@@ -65,7 +67,9 @@ describe Orocos::WebApp::Tasks do
                 with_stub_task_context "task" do |task|
                     get "/tasks/localhost/task"
                     assert_equal 200, last_response.status
-                    expected = Hash[name: 'localhost/task', model: Hash[name: ''], state: 'STOPPED']
+                    model = task.model.to_h
+                    model[:states] = model[:states].map { |k, v| [k, v.to_s] }
+                    expected = Hash[name: 'localhost/task', model: model, state: 'STOPPED']
                     assert_equal Hash[task: expected],
                         MultiJson.load(last_response.body, symbolize_keys: true)
                 end
@@ -83,9 +87,7 @@ describe Orocos::WebApp::Tasks do
                     port = task.create_output_port 'port', '/double'
                     get "/tasks/localhost/task/ports"
                     assert_equal 200, last_response.status
-                    expected = [Hash[direction: 'output', name: 'port',
-                                    type: {name: '/double', class: 'Typelib::NumericType', size: 8, integer: false}]]
-                    assert_equal Hash[ports: expected], MultiJson.load(last_response.body, symbolize_keys: true)
+                    assert_equal Hash[ports: [port.model.to_h]], MultiJson.load(last_response.body, symbolize_keys: true)
                 end
             end
         end
@@ -107,9 +109,7 @@ describe Orocos::WebApp::Tasks do
                     port = task.create_output_port 'port', '/double'
                     get "/tasks/localhost/task/ports/port"
                     assert_equal 200, last_response.status
-                    expected = Hash[direction: 'output', name: 'port',
-                                    type: {name: '/double', class: 'Typelib::NumericType', size: 8, integer: false}]
-                    assert_equal Hash[port: expected], MultiJson.load(last_response.body, symbolize_keys: true)
+                    assert_equal Hash[port: port.model.to_h], MultiJson.load(last_response.body, symbolize_keys: true)
                 end
             end
 
@@ -125,7 +125,7 @@ describe Orocos::WebApp::Tasks do
                     with_stub_task_context "task" do |task|
                         port = task.create_output_port 'port', '/double'
                         flexmock(Orocos.ruby_task).should_receive(:create_input_port).
-                            and_return(flexmock(:raw_read_new => flexmock(:to_simple_value => 10.0),
+                            and_return(flexmock(:raw_read_new => flexmock(:to_json_value => 10.0),
                                 :resolve_connection_from => true, :port= => nil, :policy= => nil))
                         get "/tasks/localhost/task/ports/port/read?timeout=0.05"
                         assert_equal 200, last_response.status

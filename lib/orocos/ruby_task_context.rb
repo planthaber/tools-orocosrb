@@ -298,8 +298,15 @@ module Orocos
         #   represent the port on the Ruby side. Do not change unless you know
         #   what you are doing
         def create_input_port(name, orocos_type_name, options = Hash.new)
-            options, other_options = Kernel.filter_options options, :class => LocalInputPort
-            create_port(false, options[:class], name, orocos_type_name, other_options)
+            options, other_options = Kernel.filter_options options,
+                :class => LocalInputPort,
+                :permanent => true
+            port = create_port(false, options[:class], name, orocos_type_name,
+                               other_options.merge(:permanent => options[:permanent]))
+            if options[:permanent]
+                port.model = model.input_port(name, port.orocos_type_name)
+            end
+            port
         end
 
         # Create a new output port on this task context
@@ -316,8 +323,15 @@ module Orocos
         #   represent the port on the Ruby side. Do not change unless you know
         #   what you are doing
         def create_output_port(name, orocos_type_name, options = Hash.new)
-            options, other_options = Kernel.filter_options options, :class => LocalOutputPort
-            create_port(true, options[:class], name, orocos_type_name, other_options)
+            options, other_options = Kernel.filter_options options,
+                :class => LocalOutputPort,
+                :permanent => true
+            port = create_port(true, options[:class], name, orocos_type_name,
+                               other_options.merge(:permanent => options[:permanent]))
+            if options[:permanent]
+                port.model = model.output_port(name, port.orocos_type_name)
+            end
+            port
         end
 
         # Remove the given port from this task's interface

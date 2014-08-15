@@ -35,6 +35,14 @@ describe Orocos::RubyTaskContext do
         assert_equal "/int32_t", task.port("p").orocos_type_name
     end
 
+    it "creates a model for a created output port" do
+        task = new_ruby_task_context("producer")
+        port = task.create_output_port("p", "/int32_t")
+        assert_kind_of Orocos::Spec::OutputPort, port.model
+        assert_equal 'p', port.model.name
+        assert_equal '/int32_t', port.model.type.name
+    end
+
     it "can create input ports" do
         task = new_ruby_task_context("producer")
         port = task.create_input_port("p", "/int32_t")
@@ -43,6 +51,13 @@ describe Orocos::RubyTaskContext do
         assert task.has_port?("p")
         assert_kind_of Orocos::InputPort, task.port("p")
         assert_equal "/int32_t", task.port("p").orocos_type_name
+
+    it "creates a model for a created input port" do
+        task = new_ruby_task_context("producer")
+        port = task.create_input_port("p", "/int32_t")
+        assert_kind_of Orocos::Spec::InputPort, port.model
+        assert_equal 'p', port.model.name
+        assert_equal '/int32_t', port.model.type.name
     end
 
     it "can write and read on ports" do

@@ -28,5 +28,8 @@
     <depend package="grape" optional="1"/>
     <depend package="multi_json" optional="1"/>
     <depend package="faye-websocket" optional="1"/>
+    <!--   gems required for testing. They are commented out as we don't want
+           everyone to install them -->
+    <!-- gem install rack-test flexmock minitest-em-sync -->
 </package>
 
