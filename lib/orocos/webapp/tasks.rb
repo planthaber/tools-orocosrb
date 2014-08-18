@@ -126,11 +126,11 @@ module Orocos
                 end
                 post ':name_service/:name/ports/:port_name/write' do
                     port = port_by_task_and_name(*params.values_at('name_service', 'name', 'port_name')) 
-                    if port.respond_to?(:writer)
+                    if !port.respond_to?(:writer)
                             error! "#{port.name} is an input port, cannot read" , 403
                     end
                     begin
-                        obj = MultiJson.load(request.params["command"])
+                        obj = MultiJson.load(request.params["value"])
                     rescue MultiJson::ParseError => exception
                         error! "malformed JSON string", 415
                     end  
