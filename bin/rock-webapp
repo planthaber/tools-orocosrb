@@ -5,12 +5,13 @@ require 'rack'
 require 'rack/cors'
 require 'thin'
 require 'orocos'
-
+require 'orocos/webapp'
 
 thin_host = '0.0.0.0'
 thin_port = 9292
 name_server_host = 'localhost'
-$enable_cors = false
+enable_cors = false
+cors_hosts = ""
 
 options = OptionParser.new do |opt|
     opt.on('--host', String, 'the host of the name server that should be contacted (default to localhost)') do |host|
@@ -22,22 +23,41 @@ options = OptionParser.new do |opt|
     opt.on('--port', Integer, "the server's port (default to #{thin_port})") do |port|
         thin_port = port
     end
-    opt.on('--enable-cors', "allow Cross-Origin Resource Sharing, JavaScript may access api even when loaded from other source than this server") do
-    	puts "CORS enabled"
-        $enable_cors = true
+    opt.on('--enable-cors hosts', Array, "enables Cross-Origin Resource Sharing for sites loaded from the parameter may include localhost host:port, file://. Also multiple values seperated by ','") do |host|
+        enable_cors = true
+        cors_hosts = host
     end
 end
 options.parse ARGV
-#has to be required after parsing the options in order to evaluate enable_cors correctly
-require 'orocos/webapp'
+
+app = nil
+if enable_cors
+    cors_hosts.map(&:to_s)
+    classdef ="
+        class WebApp < Grape::API                                               
+            use Rack::Cors do                                                                     
+                allow do
+                    origins '"+cors_hosts.join("', '")+"'
+                    resource '*', headers: :any, methods: [:get, :post]
+                end                                                                               
+            end    
+            mount Orocos::WebApp::Root                                                            
+        end
+        "
+    puts classdef
+    eval(classdef);
+
+    app = WebApp.new
+else
+    puts "noCORS"
+    app = Orocos::WebApp::Root.new    
+end
 
 Orocos::CORBA.name_service.ip = name_server_host
 Orocos.initialize
 
 Faye::WebSocket.load_adapter('thin')
-
 thin = Rack::Handler.get('thin')
-app  = Orocos::WebApp::Root.new
 EM.next_tick { Orocos::WebApp.install_event_loop }
 thin.run(app, Host: thin_host, Port: thin_port)
 

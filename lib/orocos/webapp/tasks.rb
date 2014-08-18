@@ -2,15 +2,6 @@ module Orocos
     module WebApp
         class Tasks < Grape::API
           
-            if $enable_cors
-                use Rack::Cors do
-                 allow do
-                  origins '*'
-                  resource '*', headers: :any, methods: [:get, :post]
-                 end
-                end
-            end
-          
             version 'v1', using: :header, vendor: :rock
             format :json
 
