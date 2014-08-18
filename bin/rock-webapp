@@ -11,7 +11,7 @@ thin_host = '0.0.0.0'
 thin_port = 9292
 name_server_host = 'localhost'
 enable_cors = false
-cors_hosts = ""
+cors_hosts = []
 
 options = OptionParser.new do |opt|
     opt.on('--host host', String, 'the host of the name server that should be contacted (default to localhost)') do |host|
@@ -32,24 +32,19 @@ options.parse ARGV
 
 app = nil
 if enable_cors
-    cors_hosts.map(&:to_s)
-    classdef ="
-        class WebApp < Grape::API                                               
-            use Rack::Cors do                                                                     
-                allow do
-                    origins '"+cors_hosts.join("', '")+"'
-                    resource '*', headers: :any, methods: [:get, :post]
-                end                                                                               
-            end    
-            mount Orocos::WebApp::Root                                                            
-        end
-        "
-    puts classdef
-    eval(classdef);
-
+    class WebApp < Grape::API
+    end
+    if cors_hosts
+        WebApp.use Rack::Cors do                                                                     
+            allow do
+                origins *cors_hosts
+                resource '*', headers: :any, methods: [:get, :post]
+            end                                                                               
+        end  
+    end
+    WebApp.mount Orocos::WebApp::Root
     app = WebApp.new
 else
-    puts "noCORS"
     app = Orocos::WebApp::Root.new    
 end
 
