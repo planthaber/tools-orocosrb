@@ -14,13 +14,13 @@ enable_cors = false
 cors_hosts = ""
 
 options = OptionParser.new do |opt|
-    opt.on('--host', String, 'the host of the name server that should be contacted (default to localhost)') do |host|
+    opt.on('--host host', String, 'the host of the name server that should be contacted (default to localhost)') do |host|
         name_server_host = host
     end
-    opt.on('--bind', String, 'the host the server should bind to (default to 0.0.0.0)') do |host|
+    opt.on('--bind host', String, 'the host the server should bind to (default to 0.0.0.0)') do |host|
         thin_host = host
     end
-    opt.on('--port', Integer, "the server's port (default to #{thin_port})") do |port|
+    opt.on('--port port', Integer, "the server's port (default to #{thin_port})") do |port|
         thin_port = port
     end
     opt.on('--enable-cors hosts', Array, "enables Cross-Origin Resource Sharing for sites loaded from the parameter may include localhost host:port, file://. Also multiple values seperated by ','") do |host|
