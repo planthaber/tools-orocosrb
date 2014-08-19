@@ -2,7 +2,6 @@
 
 require 'eventmachine'
 require 'rack'
-require 'rack/cors'
 require 'thin'
 require 'orocos'
 require 'orocos/webapp'
@@ -10,7 +9,6 @@ require 'orocos/webapp'
 thin_host = '0.0.0.0'
 thin_port = 9292
 name_server_host = 'localhost'
-enable_cors = false
 cors_hosts = []
 
 options = OptionParser.new do |opt|
@@ -24,28 +22,21 @@ options = OptionParser.new do |opt|
         thin_port = port
     end
     opt.on('--enable-cors hosts', Array, "enables Cross-Origin Resource Sharing for sites loaded from the parameter may include localhost host:port, file://. Also multiple values seperated by ','") do |host|
-        enable_cors = true
         cors_hosts = host
     end
 end
 options.parse ARGV
 
-app = nil
-if enable_cors
-    class WebApp < Grape::API
-    end
-    if cors_hosts
-        WebApp.use Rack::Cors do                                                                     
-            allow do
-                origins *cors_hosts
-                resource '*', headers: :any, methods: [:get, :post]
-            end                                                                               
-        end  
-    end
-    WebApp.mount Orocos::WebApp::Root
-    app = WebApp.new
-else
-    app = Orocos::WebApp::Root.new    
+class WebApp < Grape::API
+end
+if !cors_hosts.empty?
+    require 'rack/cors'
+    WebApp.use Rack::Cors do                                                                     
+        allow do
+            origins *cors_hosts
+            resource '*', headers: :any, methods: [:get, :post]
+        end                                                                               
+    end  
 end
 
 Orocos::CORBA.name_service.ip = name_server_host
@@ -53,6 +44,7 @@ Orocos.initialize
 
 Faye::WebSocket.load_adapter('thin')
 thin = Rack::Handler.get('thin')
+WebApp.mount Orocos::WebApp::Root
 EM.next_tick { Orocos::WebApp.install_event_loop }
-thin.run(app, Host: thin_host, Port: thin_port)
+thin.run(WebApp.new, Host: thin_host, Port: thin_port)
 

@@ -1,7 +1,6 @@
 module Orocos
     module WebApp
         class Tasks < Grape::API
-          
             version 'v1', using: :header, vendor: :rock
             format :json
 
