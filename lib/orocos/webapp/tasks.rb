@@ -104,7 +104,7 @@ module Orocos
                         result = Array.new
                         (params[:timeout] / params[:poll_period]).ceil.times do
                             while sample = reader.raw_read_new
-                                result << Hash[:sample => sample.to_json_value]
+                                result << Hash[:value => sample.to_json_value]
                                 if result.size == count
                                     return result
                                 end
