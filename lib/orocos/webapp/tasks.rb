@@ -123,8 +123,12 @@ module Orocos
                         obj = MultiJson.load(request.params["value"])
                     rescue MultiJson::ParseError => exception
                         error! "malformed JSON string", 415
-                    end  
-                    port.write(obj)     
+                    end 
+                    begin
+                        port.write(obj)
+                    rescue Typelib::UnknownConversionRequested => exception
+                        error! "port type mismatch", 406
+                    end     
                 end
             end
         end
