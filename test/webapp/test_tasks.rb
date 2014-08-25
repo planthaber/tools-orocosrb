@@ -210,11 +210,12 @@ describe Orocos::WebApp::Tasks do
                 end
             end
     
-            it "returns a code 201 'Created' when the port was written" do
+            it "returns a code 201 'Created' when the port was written correctly" do
                 with_stub_task_context "task" do |task|
                     port = task.create_input_port 'port', '/double'
                     post "/tasks/localhost/task/ports/port/write", value: "10.0"
                     assert_equal 201, last_response.status
+                    assert_equal 10.0, port.read
                 end
             end
         end
