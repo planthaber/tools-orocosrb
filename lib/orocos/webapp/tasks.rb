@@ -115,9 +115,10 @@ module Orocos
                     end
                 end
                 post ':name_service/:name/ports/:port_name/write' do
-                    port = port_by_task_and_name(*params.values_at('name_service', 'name', 'port_name')) 
+                    port = port_by_task_and_name(*params.values_at('name_service', 'name', 'port_name')).to_async
+               
                     if !port.respond_to?(:writer)
-                            error! "#{port.name} is an input port, cannot read" , 403
+                            error! "#{port.name} is an output port, cannot write" , 403
                     end
                     begin
                         obj = MultiJson.load(request.params["value"])
@@ -125,7 +126,7 @@ module Orocos
                         error! "malformed JSON string", 415
                     end 
                     begin
-                        port.write(obj)
+                        port.writer.write(obj)
                     rescue Typelib::UnknownConversionRequested => exception
                         error! "port type mismatch", 406
                     end     
