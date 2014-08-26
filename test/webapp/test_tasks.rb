@@ -129,7 +129,7 @@ describe Orocos::WebApp::Tasks do
                                 :resolve_connection_from => true, :port= => nil, :policy= => nil))
                         get "/tasks/localhost/task/ports/port/read?timeout=0.05"
                         assert_equal 200, last_response.status
-                        assert_equal [Hash[sample: 10]], MultiJson.load(last_response.body, symbolize_keys: true)
+                        assert_equal [Hash[value: 10]], MultiJson.load(last_response.body, symbolize_keys: true)
                     end
                 end
 
